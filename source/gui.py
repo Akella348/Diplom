@@ -3,6 +3,7 @@ from source.data_processing import load_data  # импортируем загр�
 import source.visualizations as viz  # импортируем создание графиков
 import pandas as pds
 
+
 class MainWindow(QMainWindow):
     def __init__(self):
         super().__init__()

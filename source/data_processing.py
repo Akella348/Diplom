@@ -1,5 +1,6 @@
 import pandas as pds
 
+
 def load_data(file_path):
     '''
     Загружает данные в CSV или Excel

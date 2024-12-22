@@ -1,5 +1,6 @@
 import matplotlib.pyplot as plt
 
+
 def create_bar_chart(data, x_column, y_column):
     """
     Создает столбчатую диаграмму.
