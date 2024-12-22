@@ -25,6 +25,6 @@ def process_data(data_):
     :return: обработанный DataFrame
     '''
 
-    data_['value'] = pds.to_numeric(data_['value'], errors='coerce')
-    data_['value'] = data_['value'].fillna(0)
+    data_['value'] = pds.to_numeric(data_['value'], errors='coerce')  # заменяем данные на числа, а ошибки на NaN
+    data_['value'] = data_['value'].fillna(0)  # NaN меняем на 0
     return data_
