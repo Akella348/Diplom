@@ -8,7 +8,7 @@ class MainWindow(QMainWindow):
     def __init__(self):
         super().__init__()
         self.setWindowTitle("Data Visualization App")  # название приложения
-        self.setGeometry(100, 100, 400, 400)  # размеры главного окна
+        self.setGeometry(100, 100, 300, 300)  # размеры главного окна
 
         layout = QVBoxLayout()  # вертикальная компоновка элементов
         # Кнопка для загрузки данных

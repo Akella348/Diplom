@@ -2,29 +2,33 @@ import pandas as pds
 
 
 def load_data(file_path):
-    '''
+    """
     Загружает данные в CSV или Excel
     :param file_path: Путь к файлу
     :return: DataFrame
-    '''
+    """
 
     if file_path.endswith('.csv'):
-        data_ = pds.read_csv(file_path)
+        data = pds.read_csv(file_path)
     elif file_path.endswith('.xlsx'):
-        data_ = pds.read_excel(file_path)
+        data = pds.read_excel(file_path)
     else:
         raise ValueError("Неподдерживаемый формат файла. Пожалуйста загрузите CSV или XLSX файл")
 
-    return process_data(data_)
+    return data
 
 
-def process_data(data_):
-    '''
+def process_data(data, column):
+    """
     Обрабатывает загруженные данные
-    :param data_: DataFrame
+    :param data: DataFrame
     :return: обработанный DataFrame
-    '''
+    """
 
-    data_['value'] = pds.to_numeric(data_['value'], downcast='integer', errors='coerce')  # заменяем данные на числа, а ошибки на NaN
-    data_['value'] = data_['value'].fillna(0)  # NaN меняем на 0
-    return data_
+    # преобразование в числа, ошибки - в NaN и заменяем на 0.
+    try:
+        data.loc[:, column] = pds.to_numeric(data[column], errors='coerce').fillna(0).astype(int)
+        # data.loc[:, column] = data[column].fillna(0).astype(int)
+    except Exception as e:
+        print(f"Ошибка при обработке столбца {column}: {e}")
+    return data
