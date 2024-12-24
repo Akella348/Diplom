@@ -52,9 +52,10 @@ def create_bar_chart(data, x_column, y_column):
     plt.tight_layout()
     plt.show()
 
+
 def create_line_chart(data, x_column, y_column):
     """
-    Создает линейный график.
+    Создает линейный график с помощью Matplotlib.
 
     :param data: DataFrame с данными.
     :param x_column: Название столбца для оси X.
@@ -64,34 +65,28 @@ def create_line_chart(data, x_column, y_column):
 
     # Уникальные категории по оси X
     unique_categories = data[x_column].unique()
-    num_categories = len(unique_categories)
 
-    # Генерация массива цветов
-    color_map = pds.Series(data[y_column]).rank(method='dense').astype(int)
-    colors = plt.cm.winter(color_map / color_map.max())
+    # Цвета для линий
+    colors = plt.cm.get_cmap('tab10', len(unique_categories))
 
-    # Построение линейного графика
-    for i, category in enumerate(unique_categories):
+    # Построение линии для каждой категории
+    for idx, category in enumerate(unique_categories):
         category_data = data[data[x_column] == category]
-        plt.plot(category_data[x_column], category_data[y_column], marker='o', color=colors[i], label=category)
+        plt.plot(category_data.index, category_data[y_column], marker='o', color=colors(idx), label=category)
 
     # Настройка меток и заголовка
     plt.xlabel(x_column, fontsize=14, fontweight='bold')
     plt.ylabel(y_column, fontsize=14, fontweight='bold')
-    plt.title(f'Line Chart of {y_column} vs {x_column}', fontsize=18, fontweight='bold')
+    plt.title(f'Line Chart of {y_column} by {x_column}', fontsize=18, fontweight='bold')
 
     # Настройка меток на оси X
-    plt.xticks(rotation=45, fontsize=12)
+    plt.xticks(data.index, data[x_column], rotation=45, fontsize=12)
 
     # Добавление сетки
     plt.grid(axis='both', linestyle='--', alpha=0.7)
 
-    # Добавление легенды
-    plt.legend(title=x_column, fontsize=12)
-
-    # Добавление значений над точками для лучшей читаемости
-    for i, value in enumerate(data[y_column]):
-        plt.text(data[x_column].iloc[i], value + 0.02 * max(data[y_column]), str(value), ha='center', fontsize=8, rotation=60)
+    # Настройка легенды
+    plt.legend(title=x_column)
 
     plt.tight_layout()
     plt.show()
