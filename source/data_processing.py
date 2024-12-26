@@ -32,3 +32,19 @@ def process_data(data, column):
     except Exception as e:
         print(f"Ошибка при обработке столбца {column}: {e}")
     return data
+
+
+def process_all_data(data):
+    """
+    Обрабатывает загруженные данные
+    :param data: DataFrame
+    :return: обработанный DataFrame
+    """
+
+    # преобразование в числа, ошибки - в NaN и заменяем на 0.
+    try:
+        data.loc = pds.to_numeric(data, errors='coerce').fillna(0)
+        # data.loc[:, column] = data[column].fillna(0).astype(int)
+    except Exception as e:
+        print(f"Ошибка при обработке данных: {e}")
+    return data

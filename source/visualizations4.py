@@ -1,6 +1,8 @@
 import matplotlib.pyplot as plt
+import seaborn as sns
 import pandas as pds
 
+graphics_list = ["Bar Chart", "Line Chart", "Histogram", "Contour"]
 
 def create_bar_chart(data, x_column, y_column):
     """
@@ -84,19 +86,171 @@ def create_line_chart(data, x_column, y_column):
     plt.tight_layout()
     plt.show()
 
-def create_histogram(data, column, bins=10):
+
+def create_histogram(data, column):
     """
-    Создает гистограмму.
+    Создает гистограмму с использованием Matplotlib.
 
     :param data: DataFrame с данными.
     :param column: Название столбца для построения гистограммы.
-    :param bins: Количество корзин для гистограммы.
     """
-    plt.figure(figsize=(10, 6))
-    plt.hist(data[column], bins=bins, color='lightgreen', edgecolor='black')
-    plt.xlabel(column)
-    plt.ylabel('Frequency')
-    plt.title(f'Histogram of {column}')
-    plt.grid(axis='y', alpha=0.75)
+    plt.figure(figsize=(12, 8))
+
+    # Разбиваем данные на интервалы и получаем частоты
+    counts, bins = pds.cut(data[column], bins=10, retbins=True)
+    counts = counts.value_counts().sort_index()
+
+    # Преобразуем интервалы в строки для отображения
+    bin_labels = [f'{interval.left:.2f} - {interval.right:.2f}' for interval in counts.index]
+
+    # Генерация массива цветов
+    color_map = pds.Series(data[column]).rank(method='dense').astype(int)
+    colors = plt.cm.viridis(color_map / color_map.max())
+
+    # Отображение гистограммы
+    plt.bar(bin_labels, counts.values, color=colors, edgecolor='black', alpha=0.7)
+
+    # Настройка меток и заголовка
+    plt.xlabel(column, fontsize=14, fontweight='bold')
+    plt.ylabel('Frequency', fontsize=14, fontweight='bold')
+    plt.title(f'Histogram of {column}', fontsize=18, fontweight='bold')
+
+    # Добавление сетки
+    plt.grid(axis='y', linestyle='--', alpha=0.7)
+
+    # Добавление значений над столбцами гистограммы
+    for x, count in zip(bin_labels, counts.values):
+        plt.text(x, count + 0.02 * max(counts.values), str(count), ha='center', fontsize=10)
+
+    plt.xticks(rotation=45)  # Поворачиваем метки на оси X для лучшей читаемости
     plt.tight_layout()
+    plt.show()
+
+
+def create_contour_plot(data, x_column, y_column, z_column):
+    """
+    Создает контурный график с использованием Matplotlib и Pandas.
+
+    :param data: Dataframe.
+    :param x_column: Название колонки для оси X.
+    :param y_column: Название колонки для оси Y.
+    :param z_column: Название колонки для оси Z.
+    """
+    # Извлечение данных из DataFrame по указанным столбцам
+    x_data = data[x_column].values
+    y_data = data[y_column].values
+    z_data = data[z_column].values
+
+    # Проверка на равенство длины массивов
+    if len(x_data) != len(y_data) or len(y_data) != len(z_data):
+        raise ValueError("Все входные массивы должны иметь одинаковую длину.")
+
+    # Создаем DataFrame из входных данных
+    df = pds.DataFrame({'x': x_data, 'y': y_data, 'z': z_data})
+
+    # Создаем сетку для контурного графика
+    x_grid = df['x'].unique()
+    y_grid = df['y'].unique()
+
+    # Создаем матрицу Z для контурного графика
+    z_matrix = pds.DataFrame(index=sorted(y_grid), columns=sorted(x_grid))
+
+    # Заполняем матрицу Z значениями из DataFrame
+    for _, row in df.iterrows():
+        z_matrix.loc[row['y'], row['x']] = row['z']
+
+    # Заполняем пропуски (NaN) средними значениями соседей
+    z_matrix = z_matrix.astype(float).interpolate(method='linear', axis=0).interpolate(method='linear', axis=1)
+
+    # Проверка на наличие NaN в z_matrix перед построением графика
+    if z_matrix.isnull().values.any():
+        print("Warning: There are NaN values in the z_matrix after interpolation.")
+
+    # Создание контурного графика
+    plt.figure(figsize=(10, 6))
+    contour = plt.contourf(z_matrix.columns, z_matrix.index, z_matrix.values, levels=15, cmap='viridis')
+    plt.colorbar(contour)
+    plt.title('Contour Plot')
+    plt.xlabel('X Axis')
+    plt.ylabel('Y Axis')
+    plt.show()
+
+
+def create_seaborn_line_chart(data, x_column, y_column):
+    """
+    Создает линейный график с использованием Seaborn.
+
+    :param data: DataFrame с данными.
+    :param x_column: Название колонки для оси X.
+    :param y_column: Название колонки для оси Y.
+    """
+    # Создаем линейный график
+    line_chart = sns.lineplot(data=data, x=x_column, y=y_column)
+
+    # Настраиваем заголовок и подписи осей
+    line_chart.set_title(f'Line Chart of {y_column} vs {x_column}')
+    line_chart.set_xlabel(x_column)
+    line_chart.set_ylabel(y_column)
+
+    # Показываем график
+    plt.show()
+
+
+def create_seaborn_bar_chart(data, x_column, y_column):
+    """
+    Создает столбчатый график с использованием Seaborn.
+
+    :param data: DataFrame с данными.
+    :param x_column: Название колонки для оси X.
+    :param y_column: Название колонки для оси Y.
+    """
+    # Создаем столбчатый график
+    bar_chart = sns.barplot(data=data, x=x_column, y=y_column)
+
+    # Настраиваем заголовок и подписи осей
+    bar_chart.set_title(f'Bar Chart of {y_column} vs {x_column}')
+    bar_chart.set_xlabel(x_column)
+    bar_chart.set_ylabel(y_column)
+
+    # Показываем график
+    plt.show()
+
+
+def create_seaborn_histogram(data, column):
+    """
+    Создает гистограмму с использованием Seaborn.
+
+    :param data: DataFrame с данными.
+    :param column: Название колонки для построения гистограммы.
+    """
+    # Создаем гистограмму с кривой плотности
+    histogram = sns.histplot(data[column], bins=10, kde=True)
+
+    # Настраиваем заголовок и подписи осей
+    histogram.set_title(f'Histogram of {column}')
+    histogram.set_xlabel(column)
+    histogram.set_ylabel('Frequency')
+
+    # Показываем график
+    plt.show()
+
+
+def create_seaborn_contour_plot(data, x_column, y_column, z_column):
+    """
+    Создает контурный график с использованием Seaborn.
+
+    :param data: DataFrame с данными.
+    :param x_column: Название колонки для оси X.
+    :param y_column: Название колонки для оси Y.
+    :param z_column: Название колонки для оси Y.
+    """
+    # Создаем контурный график
+    contour_plot = sns.kdeplot(data=data, x=x_column, y=y_column, cmap='viridis', fill=True)
+
+    # Настраиваем заголовок и подписи осей
+    contour_plot.set_title(f'Contour Plot of {y_column} vs {x_column}')
+    contour_plot.set_xlabel(x_column)
+    contour_plot.set_ylabel(y_column)
+
+    # Показываем график
     plt.show()

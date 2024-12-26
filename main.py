@@ -1,6 +1,6 @@
 import sys
 from PyQt5.QtWidgets import QApplication  # pyqt5 аналог tkinter, но посовременнее и удобнее. создадим диалоговое окно
-from source.gui2 import MainWindow # gui импортируем из написанного файла
+from source.gui3 import MainWindow # gui импортируем из написанного файла
 
 if __name__ == "__main__":
     app = QApplication(sys.argv)  # создаем объект для управления приложением,
