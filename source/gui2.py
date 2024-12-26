@@ -48,8 +48,19 @@ class MainWindow(QMainWindow):
         self.plot_type_label = QLabel("Select Plot Type:")
         layout.addWidget(self.plot_type_label)
         self.plot_type_combo = QComboBox()
-        self.plot_type_combo.addItems(["Bar Chart", "Line Chart"])  # Добавление типов графиков
+        self.plot_type_combo.addItems(viz.graphics_list)  # Добавление типов графиков
         layout.addWidget(self.plot_type_combo)
+
+        # Метка и выпадающий список для выбора столбца Z
+        self.z_label = QLabel("Select Z Column:")  # добавляем метку для Z
+        self.z_label.setVisible(False)  # скрываем метку по умолчанию
+        layout.addWidget(self.z_label)
+        self.z_combo = QComboBox()  # создаем выпадающий список для Z
+        self.z_combo.setVisible(False)  # скрываем его по умолчанию
+        layout.addWidget(self.z_combo)
+
+        # Подключаем обработчик для изменения видимости Z ComboBox
+        self.plot_type_combo.currentIndexChanged.connect(self.update_z_combobox_visibility)
 
         # Кнопка для вывода графика
         self.plot_button = QPushButton("Plot Data")
@@ -60,9 +71,10 @@ class MainWindow(QMainWindow):
         container.setLayout(layout)  # применение вертикальной компоновки к контейнеру
         self.setCentralWidget(container)  # назначение контейнера центральным
 
+
     def data_loader(self):
         file_name, _ = QFileDialog.getOpenFileName(self, "Open Data File", "",
-                                                   'CSV Files (*.csv);;Excel Files (*.xlsx)')
+                                                   'Excel Files (*.xlsx);;CSV Files (*.csv)')
         if file_name:
             try:
                 self.data = load_data(file_name)  # Загружаем данные и сохраняем в атрибуте класса
@@ -70,6 +82,7 @@ class MainWindow(QMainWindow):
                 self.update_comboboxes()  # Обновляем выпадающие списки на основе загруженных данных
             except Exception as e:
                 QMessageBox.critical(self, "Ошибка", f"Ошибка при загрузке данных: {str(e)}")
+
 
     def update_comboboxes(self):
         # Обновление выпадающих списков на основе загруженных данных
@@ -81,19 +94,40 @@ class MainWindow(QMainWindow):
             self.y_combo.clear()  # Очищаем старые элементы
             self.y_combo.addItems(columns)  # Добавляем новые элементы
 
+            self.z_combo.clear()  # Очищаем старые элементы
+            self.z_combo.addItems(columns)  # Добавляем новые элементы
+
             # Обновляем фильтры после обновления столбцов
             self.update_filters_x()
+            self.update_z_combobox_visibility()  # Обновляем видимость Z ComboBox
+
+
+    def update_z_combobox_visibility(self):
+        # Обновление видимости Z ComboBox в зависимости от выбранного типа графика
+        selected_plot_type = self.plot_type_combo.currentText()
+        if selected_plot_type == "Contour":
+            self.z_label.setVisible(True)
+            self.z_combo.setVisible(True)
+        else:
+            self.z_label.setVisible(False)
+            self.z_combo.setVisible(False)
 
     def update_filters_x(self):
-        # Обновление фильтров на основе выбранных столбцов
         x_column = self.x_combo.currentText()
+        print(f"Updating filters for X column: {x_column}")
 
-        # Обновляем фильтры для оси X
         if x_column and self.data is not None:
+            # Получаем уникальные значения и преобразуем их в строки
             unique_x_values = set(self.data[x_column].dropna())
+            print(f"Unique X values: {unique_x_values}")
+
+            # Преобразуем значения в строки
+            unique_x_values_str = [str(value) for value in unique_x_values]
+
             self.x_filter_combo.clear()
-            self.x_filter_combo.addItem("Все")  # Добавляем опцию "Все"
-            self.x_filter_combo.addItems(sorted(unique_x_values))
+            self.x_filter_combo.addItem("Все")
+            self.x_filter_combo.addItems(sorted(unique_x_values_str))
+
 
     def plot_data(self):
         if self.data is None or self.data.empty:
@@ -103,8 +137,17 @@ class MainWindow(QMainWindow):
         # Получаем выбранные столбцы для осей X и Y
         x_column = self.x_combo.currentText()
         y_column = self.y_combo.currentText()
+        z_column = self.z_combo.currentText() if self.z_combo.isVisible() else ""
+
+        # Получаем выбранную библиотеку и тип графика
+        selected_library = self.library_combo.currentText()
+        selected_plot_type = self.plot_type_combo.currentText()
 
         # Проверяем, что выбранные столбцы не пустые
+        if selected_plot_type == "Contour":
+            if x_column == "" or y_column == "" or z_column == "":
+                print("Пожалуйста, выберите столбцы для осей X, Y, Z.")
+                return
         if x_column == "" or y_column == "":
             print("Пожалуйста, выберите столбцы для осей X и Y.")
             return
@@ -113,10 +156,11 @@ class MainWindow(QMainWindow):
         x_filter_value = self.x_filter_combo.currentText()
 
         # Фильтруем данные
+        all_data = self.data.copy()  # копируем датасет
         if x_filter_value == "Все":
-            filtered_data = self.data.copy()  # Если выбрано "Все", используем все данные
+            filtered_data = all_data  # Если выбрано "Все", используем все данные
         else:
-            filtered_data = self.data[self.data[x_column] == x_filter_value]
+            filtered_data = all_data[all_data[x_column] == x_filter_value]
 
         # Проверяем, есть ли данные после фильтрации
         if filtered_data.empty:
@@ -125,32 +169,41 @@ class MainWindow(QMainWindow):
 
         # Обрабатываем данные по выбранному Y
         try:
-            filtered_data = process_data(filtered_data, y_column)  # Обработка выбранного Y
+            y_filtered = process_data(filtered_data, y_column)  # Обработка выбранного Y
+            if self.z_combo.isVisible():
+                x_filtered = process_data(all_data, x_column)
+                z_filtered = process_data(all_data, z_column)
         except Exception as e:
             print(f"Ошибка при обработке данных: {e}")
             return
 
-        # Получаем выбранную библиотеку и тип графика
-        selected_library = self.library_combo.currentText()
-        selected_plot_type = self.plot_type_combo.currentText()
+
 
         # Вызов функции для построения графика в зависимости от выбранной библиотеки и типа графика
         try:
             if selected_library == "matplotlib":
                 if selected_plot_type == "Bar Chart":
-                    viz.create_bar_chart(filtered_data, x_column=x_column, y_column=y_column)
+                    viz.create_bar_chart(y_filtered, x_column=x_column, y_column=y_column)
                 elif selected_plot_type == "Line Chart":
-                    viz.create_line_chart(filtered_data, x_column=x_column, y_column=y_column)
-            # elif selected_library == "seaborn":
+                    viz.create_line_chart(y_filtered, x_column=x_column, y_column=y_column)
+                elif selected_plot_type == "Histogram":
+                    viz.create_histogram(y_filtered, y_column)
+                elif selected_plot_type == "Contour":
+                    viz.create_contour_plot(x_filtered, y_filtered, z_filtered)
+            elif selected_library == "seaborn":
+                if selected_plot_type == "Bar Chart":
+                    viz.create_seaborn_bar_chart(y_filtered, x_column=x_column, y_column=y_column)
+                elif selected_plot_type == "Line Chart":
+                    viz.create_seaborn_line_chart(y_filtered, x_column=x_column, y_column=y_column)
+                elif selected_plot_type == "Histogram":
+                    viz.create_seaborn_histogram(y_filtered, y_column)
+                elif selected_plot_type == "Contour":
+                    viz.create_seaborn_contour_plot(x_filtered, y_filtered, z_filtered)
+            # elif selected_library == "plotly":
             #     if selected_plot_type == "Bar Chart":
-            #         viz.create_seaborn_bar_chart(filtered_data, x_column=x_column, y_column=y_column)
+            #         viz.create_plotly_bar_chart(filtered_data, x_column=x_column, y_column=y_column)
             #     elif selected_plot_type == "Line Chart":
-            #         viz.create_seaborn_line_chart(filtered_data, x_column=x_column, y_column=y_column)
-            # elif selected_library == "numpy":
-            #     if selected_plot_type == "Bar Chart":
-            #         viz.create_numpy_bar_chart(filtered_data, x_column=x_column, y_column=y_column)
-            #     elif selected_plot_type == "Line Chart":
-            #         viz.create_numpy_line_chart(filtered_data, x_column=x_column, y_column=y_column)
+            #         viz.create_plotly_line_chart(filtered_data, x_column=x_column, y_column=y_column)
         except Exception as e:
             print(f"Error occurred while plotting: {e}")
 
