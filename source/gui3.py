@@ -41,7 +41,7 @@ class MainWindow(QMainWindow):
         self.library_label = QLabel("Select Visualization Library:")
         layout.addWidget(self.library_label)
         self.library_combo = QComboBox()
-        self.library_combo.addItems(["matplotlib", "seaborn", "numpy"])  # Добавление библиотек
+        self.library_combo.addItems(["matplotlib", "seaborn", "plotly"])  # Добавление библиотек
         layout.addWidget(self.library_combo)
 
         # Выпадающий список для выбора типа графика
@@ -199,7 +199,7 @@ class MainWindow(QMainWindow):
                 elif selected_plot_type == "Histogram":
                     viz.create_seaborn_histogram(filtered_data, y_column)
                 elif selected_plot_type == "Contour":
-                    viz.create_seaborn_contour_plot(filtered_data[x_column], filtered_data[y_column], filtered_data[z_column])
+                    viz.create_seaborn_contour_plot(filtered_all_data, x_column, y_column, z_column)
             # elif selected_library == "plotly":
             #     if selected_plot_type == "Bar Chart":
             #         viz.create_plotly_bar_chart(filtered_data, x_column=x_column, y_column=y_column)

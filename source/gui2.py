@@ -1,6 +1,6 @@
 from PyQt5.QtWidgets import QMainWindow, QPushButton, QFileDialog, QVBoxLayout, QWidget, QComboBox, QLabel, QMessageBox
 from source.data_processing import load_data, process_data  # импортируем загрузчик данных
-import source.visualizations4 as viz  # импортируем создание графиков
+import source.visualizations5 as viz  # импортируем создание графиков
 import pandas as pds
 
 class MainWindow(QMainWindow):

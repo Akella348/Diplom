@@ -196,67 +196,118 @@ def create_seaborn_line_chart(data, x_column, y_column):
     plt.show()
 
 
-def create_seaborn_bar_chart(data, x_column, y_column):
+def create_seaborn_bar_chart(data, x_column, y_column,
+                             color='blue', alpha=0.8, show_values=True,
+                             title=None, xlabel=None, ylabel=None):
     """
-    Создает столбчатый график с использованием Seaborn.
+    Создает столбчатый график с использованием Seaborn с возможностью настройки.
 
     :param data: DataFrame с данными.
     :param x_column: Название колонки для оси X.
     :param y_column: Название колонки для оси Y.
+    :param color: Цвет столбцов.
+    :param alpha: Прозрачность столбцов.
+    :param show_values: Показать ли значения над столбцами (True/False).
+    :param title: Заголовок графика.
+    :param xlabel: Подпись для оси X.
+    :param ylabel: Подпись для оси Y.
     """
     # Создаем столбчатый график
-    bar_chart = sns.barplot(data=data, x=x_column, y=y_column)
+    bar_chart = sns.barplot(data=data, x=x_column, y=y_column, color=color, alpha=alpha)
 
     # Настраиваем заголовок и подписи осей
-    bar_chart.set_title(f'Bar Chart of {y_column} vs {x_column}')
-    bar_chart.set_xlabel(x_column)
-    bar_chart.set_ylabel(y_column)
+    if title:
+        bar_chart.set_title(title)
+    else:
+        bar_chart.set_title(f'Bar Chart of {y_column} vs {x_column}')
+
+    bar_chart.set_xlabel(xlabel if xlabel else x_column)
+    bar_chart.set_ylabel(ylabel if ylabel else y_column)
+
+    # Если необходимо, показываем значения над столбцами
+    if show_values:
+        for p in bar_chart.patches:
+            bar_chart.annotate(format(p.get_height(), '.2f'),
+                               (p.get_x() + p.get_width() / 2., p.get_height()),
+                               ha='center', va='bottom', fontsize=10)
 
     # Показываем график
     plt.show()
 
 
-def create_seaborn_histogram(data, column):
+def create_seaborn_histogram(data, column,
+                             bins=10, color='blue', kde=True, alpha=0.6,
+                             title=None, xlabel=None, ylabel='Frequency'):
     """
-    Создает гистограмму с использованием Seaborn.
+    Создает гистограмму с использованием Seaborn с возможностью настройки.
 
     :param data: DataFrame с данными.
     :param column: Название колонки для построения гистограммы.
+    :param bins: Количество бинов для гистограммы.
+    :param color: Цвет гистограммы.
+    :param kde: Включить ли кривую плотности (True/False).
+    :param alpha: Прозрачность гистограммы.
+    :param title: Заголовок графика.
+    :param xlabel: Подпись для оси X.
+    :param ylabel: Подпись для оси Y.
     """
-    # Создаем гистограмму с кривой плотности
-    histogram = sns.histplot(data[column], bins=10, kde=True)
+    # Создаем гистограмму
+    histogram = sns.histplot(data[column], bins=bins, color=color, kde=kde, alpha=alpha)
 
     # Настраиваем заголовок и подписи осей
-    histogram.set_title(f'Histogram of {column}')
-    histogram.set_xlabel(column)
-    histogram.set_ylabel('Frequency')
+    if title:
+        histogram.set_title(title)
+    else:
+        histogram.set_title(f'Histogram of {column}')
+
+    histogram.set_xlabel(xlabel if xlabel else column)
+    histogram.set_ylabel(ylabel)
 
     # Показываем график
     plt.show()
 
 
-def create_seaborn_contour_plot(data, x_column, y_column, z_column):
+def create_seaborn_contour_plot(data, x_column, y_column, z_column,
+                                contour_levels=10, cmap='viridis', point_size=50, alpha=0.7,
+                                title=None, xlabel=None, ylabel=None, colorbar_label=None):
     """
-    Создает контурный график с использованием Seaborn.
+    Создает контурный график с использованием Seaborn с возможностью настройки.
 
     :param data: DataFrame с данными.
     :param x_column: Название колонки для оси X.
     :param y_column: Название колонки для оси Y.
-    :param z_column: Название колонки для оси Y.
+    :param z_column: Название колонки для высоты (значения Z).
+    :param contour_levels: Количество уровней контуров.
+    :param cmap: Цветовая карта для контуров и точек.
+    :param point_size: Размер точек на графике.
+    :param alpha: Прозрачность точек.
+    :param title: Заголовок графика.
+    :param xlabel: Подпись для оси X.
+    :param ylabel: Подпись для оси Y.
+    :param colorbar_label: Подпись для цветовой шкалы.
     """
     # Создаем контурный график
-    contour_plot = sns.kdeplot(data=data, x=x_column, y=y_column, cmap='viridis', fill=True)
+    contour_plot = sns.kdeplot(data=data, x=x_column, y=y_column, cmap=cmap, fill=True, levels=contour_levels)
 
     # Добавляем точки с высотой
-    scatter = plt.scatter(data[x_column], data[y_column], c=data[z_column], cmap='viridis', edgecolor='w', s=50)
+    scatter = plt.scatter(data[x_column], data[y_column], c=data[z_column], cmap=cmap, edgecolor='w',
+                          s=point_size, alpha=alpha)
 
     # Настраиваем заголовок и подписи осей
-    contour_plot.set_title(f'Contour Plot of {y_column} vs {x_column}')
-    contour_plot.set_xlabel(x_column)
-    contour_plot.set_ylabel(y_column)
+    if title:
+        contour_plot.set_title(title)
+    else:
+        contour_plot.set_title(f'Contour Plot of {y_column} vs {x_column} with height')
+
+    contour_plot.set_xlabel(xlabel if xlabel else x_column)
+    contour_plot.set_ylabel(ylabel if ylabel else y_column)
 
     # Добавляем цветовую шкалу
-    plt.colorbar(scatter, label=z_column)
+    if colorbar_label:
+        cbar = plt.colorbar(scatter)
+        cbar.set_label(colorbar_label)
+    else:
+        plt.colorbar(scatter, label=z_column)
 
     # Показываем график
     plt.show()
