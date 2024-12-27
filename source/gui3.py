@@ -1,6 +1,6 @@
 from PyQt5.QtWidgets import QMainWindow, QPushButton, QFileDialog, QVBoxLayout, QWidget, QComboBox, QLabel, QMessageBox
 from source.data_processing import load_data, process_data, process_all_data  # импортируем загрузчик данных
-import source.visualizations4 as viz  # импортируем создание графиков
+import source.visualizations6 as viz  # импортируем создание графиков
 import pandas as pds
 
 class MainWindow(QMainWindow):
@@ -184,27 +184,31 @@ class MainWindow(QMainWindow):
         try:
             if selected_library == "matplotlib":
                 if selected_plot_type == "Bar Chart":
-                    viz.create_bar_chart(filtered_data, x_column=x_column, y_column=y_column)
+                    viz.create_bar_chart(filtered_data, x_column, y_column)
                 elif selected_plot_type == "Line Chart":
-                    viz.create_line_chart(filtered_data, x_column=x_column, y_column=y_column)
+                    viz.create_line_chart(filtered_data, x_column, y_column)
                 elif selected_plot_type == "Histogram":
                     viz.create_histogram(filtered_data, y_column)
                 elif selected_plot_type == "Contour":
                     viz.create_contour_plot(filtered_all_data, x_column, y_column, z_column)
             elif selected_library == "seaborn":
                 if selected_plot_type == "Bar Chart":
-                    viz.create_seaborn_bar_chart(filtered_data, x_column=x_column, y_column=y_column)
+                    viz.create_seaborn_bar_chart(filtered_data, x_column, y_column)
                 elif selected_plot_type == "Line Chart":
-                    viz.create_seaborn_line_chart(filtered_data, x_column=x_column, y_column=y_column)
+                    viz.create_seaborn_line_chart(filtered_data, x_column, y_column)
                 elif selected_plot_type == "Histogram":
                     viz.create_seaborn_histogram(filtered_data, y_column)
                 elif selected_plot_type == "Contour":
                     viz.create_seaborn_contour_plot(filtered_all_data, x_column, y_column, z_column)
-            # elif selected_library == "plotly":
-            #     if selected_plot_type == "Bar Chart":
-            #         viz.create_plotly_bar_chart(filtered_data, x_column=x_column, y_column=y_column)
-            #     elif selected_plot_type == "Line Chart":
-            #         viz.create_plotly_line_chart(filtered_data, x_column=x_column, y_column=y_column)
+            elif selected_library == "plotly":
+                if selected_plot_type == "Bar Chart":
+                    viz.create_plotly_bar_chart(filtered_data, x_column, y_column)
+                elif selected_plot_type == "Line Chart":
+                    viz.create_plotly_line_chart(filtered_data, x_column, y_column)
+                elif selected_plot_type == "Histogram":
+                    viz.create_plotly_histogram(filtered_data, x_column)
+                elif selected_plot_type == "Contour":
+                    viz.create_plotly_contour(filtered_all_data, x_column, y_column, z_column)
         except Exception as e:
             print(f"Error occurred while plotting: {e}")
 

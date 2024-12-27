@@ -346,7 +346,7 @@ def create_plotly_line_chart(data, x_column, y_column,
 
 
 def create_plotly_bar_chart(data, x_column, y_column,
-                             color='blue', show_values=True,
+                             show_values=True,
                              title=None, xlabel=None, ylabel=None):
     """
     Создает столбчатый график с использованием Plotly с возможностью настройки.
@@ -354,18 +354,23 @@ def create_plotly_bar_chart(data, x_column, y_column,
     :param data: DataFrame с данными.
     :param x_column: Название колонки для оси X.
     :param y_column: Название колонки для оси Y.
-    :param color: Цвет столбцов.
     :param show_values: Показать ли значения над столбцами (True/False).
     :param title: Заголовок графика.
     :param xlabel: Подпись для оси X.
     :param ylabel: Подпись для оси Y.
     """
+    # Создаем столбчатый график
     fig = px.bar(data, x=x_column, y=y_column,
-                  color_discrete_sequence=[color],
-                  title=title if title else f'Bar Chart of {y_column} vs {x_column}')
+                  color=x_column,  # Используем x_column для разделения по цвету
+                  title=title if title else f'Bar Chart of {y_column} vs {x_column}',
+                  text=y_column)  # Добавляем текст значений на столбцах
 
-    fig.update_layout(xaxis_title=xlabel if xlabel else x_column,
-                      yaxis_title=ylabel if ylabel else y_column)
+    # Обновляем настройки графика
+    fig.update_layout(barmode='group',  # Устанавливаем режим группировки
+                      xaxis_title=xlabel if xlabel else x_column,
+                      yaxis_title=ylabel if ylabel else y_column,
+                      height=800,  # Увеличиваем высоту графика
+                      width=1200)   # Увеличиваем ширину графика
 
     if show_values:
         # Добавляем значения над столбцами
@@ -375,6 +380,9 @@ def create_plotly_bar_chart(data, x_column, y_column,
                                text=str(data[y_column][i]),
                                showarrow=False,
                                font=dict(size=10))
+
+    # Увеличиваем ширину столбцов
+    fig.update_traces(width=0.4)  # Задаем ширину столбцов (значение от 0 до 1)
 
     fig.show()
 
