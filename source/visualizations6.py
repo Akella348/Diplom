@@ -317,30 +317,48 @@ def create_seaborn_contour_plot(data, x_column, y_column, z_column,
     plt.show()
 
 
-def create_plotly_line_chart(data, x_column, y_column,
-                              color='blue', show_markers=True,
-                              title=None, xlabel=None, ylabel=None):
+def create_plotly_line_chart(data, x_column, y_column):
     """
     Создает линейный график с использованием Plotly с возможностью настройки.
+    Строит линии отдельно для каждой категории, отображая их друг за другом.
 
     :param data: DataFrame с данными.
     :param x_column: Название колонки для оси X.
     :param y_column: Название колонки для оси Y.
-    :param color: Цвет линии.
-    :param show_markers: Показать ли маркеры на линии (True/False).
-    :param title: Заголовок графика.
-    :param xlabel: Подпись для оси X.
-    :param ylabel: Подпись для оси Y.
     """
-    fig = px.line(data, x=x_column, y=y_column,
-                   line_shape='linear',
-                   title=title if title else f'Line Chart of {y_column} vs {x_column}',
-                   markers=show_markers)
+    # Создаем фигуру
+    fig = go.Figure()
 
-    fig.update_traces(line=dict(color=color))  # Настройка цвета линии
+    # Получаем уникальные категории
+    unique_categories = data[x_column].unique()
+    category_indices = {category: idx for idx, category in enumerate(unique_categories)}
 
-    fig.update_layout(xaxis_title=xlabel if xlabel else x_column,
-                      yaxis_title=ylabel if ylabel else y_column)
+    # Добавляем линии для каждой категории
+    for category in unique_categories:
+        category_data = data[data[x_column] == category]
+        # Используем индексы с небольшим смещением для отображения точек
+        x_values = [category_indices[category] + (i - len(category_data) / 2) * 0.1 for i in range(len(category_data))]
+        y_values = category_data[y_column].values
+
+        fig.add_trace(go.Scatter(
+            x=x_values,  # Используем смещенные значения по оси X
+            y=y_values,  # Значения по оси Y
+            mode='lines+markers',  # Режим отображения: линии и маркеры
+            name=str(category)  # Название для легенды
+        ))
+
+    # Настройки графика
+    fig.update_layout(
+        title=f'Line Chart of {y_column} by {x_column}',
+        xaxis_title=x_column,
+        yaxis_title=y_column,
+        xaxis=dict(tickvals=list(range(len(unique_categories))), ticktext=unique_categories),  # Установка меток по оси X
+        showlegend=True  # Показывать легенду
+    )
+
+    # Добавляем сетку
+    fig.update_xaxes(showgrid=True)
+    fig.update_yaxes(showgrid=True)
 
     fig.show()
 
