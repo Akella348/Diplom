@@ -346,8 +346,8 @@ def create_plotly_line_chart(data, x_column, y_column,
 
 
 def create_plotly_bar_chart(data, x_column, y_column,
-                             show_values=True,
-                             title=None, xlabel=None, ylabel=None):
+                            show_values=True,
+                            title=None, xlabel=None, ylabel=None):
     """
     Создает столбчатый график с использованием Plotly с возможностью настройки.
 
@@ -359,30 +359,46 @@ def create_plotly_bar_chart(data, x_column, y_column,
     :param xlabel: Подпись для оси X.
     :param ylabel: Подпись для оси Y.
     """
-    # Создаем столбчатый график
-    fig = px.bar(data, x=x_column, y=y_column,
-                  color=x_column,  # Используем x_column для разделения по цвету
-                  title=title if title else f'Bar Chart of {y_column} vs {x_column}',
-                  text=y_column)  # Добавляем текст значений на столбцах
+    # Создаем фигуру
+    fig = go.Figure()
 
-    # Обновляем настройки графика
-    fig.update_layout(barmode='group',  # Устанавливаем режим группировки
+    # Получаем уникальные категории
+    unique_categories = data[x_column].unique()
+
+    # Определяем ширину столбцов
+    bar_width = 0.1  # Ширина столбцов
+    offset = bar_width * (len(unique_categories) // 2)  # Смещение для центрирования
+
+    # Добавляем столбцы для каждого значения в категории
+    for i, category in enumerate(unique_categories):
+        filtered_data = data[data[x_column] == category]
+        for j, value in enumerate(filtered_data[y_column]):
+            # Смещение по оси X для каждого столбца
+            x_position = i + j * bar_width
+            fig.add_trace(go.Bar(
+                x=[x_position],  # Уникальное значение по оси X
+                y=[value],  # Значение по оси Y
+                name=str(category),  # Название для легенды
+                width=bar_width,
+            ))
+
+            # Добавляем значение над столбцом
+            if show_values:
+                fig.add_annotation(x=x_position,
+                                   y=value,
+                                   text=str(value),
+                                   showarrow=False,
+                                   font=dict(size=10),
+                                   yshift=5)  # Сдвиг по оси Y для размещения над столбцом
+
+    # Настройки графика
+    fig.update_layout(title=title if title else f'Bar Chart of {y_column} vs {x_column}',
                       xaxis_title=xlabel if xlabel else x_column,
                       yaxis_title=ylabel if ylabel else y_column,
-                      height=800,  # Увеличиваем высоту графика
-                      width=1200)   # Увеличиваем ширину графика
-
-    if show_values:
-        # Добавляем значения над столбцами
-        for i in range(len(data)):
-            fig.add_annotation(x=data[x_column][i],
-                               y=data[y_column][i],
-                               text=str(data[y_column][i]),
-                               showarrow=False,
-                               font=dict(size=10))
-
-    # Увеличиваем ширину столбцов
-    fig.update_traces(width=0.4)  # Задаем ширину столбцов (значение от 0 до 1)
+                      xaxis=dict(tickvals=list(range(len(unique_categories)))),  # Установка меток по оси X
+                      xaxis_ticktext=unique_categories,  # Метки для категорий
+                      barmode='group',  # Группировка столбцов
+                      bargap=0.05)  # Зазор между группами
 
     fig.show()
 
