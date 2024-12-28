@@ -1,6 +1,12 @@
 import matplotlib.pyplot as plt
+import seaborn as sns
 import pandas as pds
+import numpy as np
+import plotly.express as px
+import plotly.graph_objects as go
+from scipy.interpolate import griddata
 
+graphics_list = ["Bar Chart", "Line Chart", "Histogram", "Contour"]
 
 def create_bar_chart(data, x_column, y_column):
     """
@@ -10,46 +16,7 @@ def create_bar_chart(data, x_column, y_column):
     :param x_column: Название столбца для оси X.
     :param y_column: Название столбца для оси Y.
     """
-    plt.figure(figsize=(12, 8))
-
-    # Уникальные категории по оси X
-    unique_categories = data[x_column].unique()
-    num_categories = len(unique_categories)
-
-    # Вычисление ширины столбцов
-    bar_width = 0.8 / num_categories  # Уменьшаем ширину, чтобы столбцы не накладывались
-
-    # Создание смещения для столбцов
-    x_positions = []
-
-    for i, category in enumerate(unique_categories):
-        category_data = data[data[x_column] == category]
-        x_positions.extend(
-            [i - (bar_width * (len(category_data) - 1) / 2) + j * bar_width for j in range(len(category_data))])
-
-    # Генерация массива цветов
-    color_map = pds.Series(data[y_column]).rank(method='dense').astype(int)
-    colors = plt.cm.winter(color_map / color_map.max())
-
-    # Создание столбчатой диаграммы с различными цветами и заданной шириной столбцов
-    plt.bar(x_positions, data[y_column], color=colors, width=bar_width)
-
-    # Настройка меток и заголовка
-    plt.xlabel(x_column, fontsize=14, fontweight='bold')
-    plt.ylabel(y_column, fontsize=14, fontweight='bold')
-    plt.title(f'Bar Chart of {y_column} vs {x_column}', fontsize=18, fontweight='bold')
-
-    # Настройка меток на оси X
-    plt.xticks(range(num_categories), unique_categories, rotation=45, fontsize=12)
-
-    # Добавление сетки
-    plt.grid(axis='y', linestyle='--', alpha=0.7)
-
-    # Добавление значений над столбцами для лучшей читаемости
-    for i, value in enumerate(data[y_column]):
-        plt.text(x_positions[i], value + 0.02 * max(data[y_column]), value, ha='center', fontsize=6, rotation=60)
-
-    plt.tight_layout()
+    plt.bar(data[x_column], data[y_column])
     plt.show()
 
 def create_line_chart(data, x_column, y_column):
@@ -60,40 +27,7 @@ def create_line_chart(data, x_column, y_column):
     :param x_column: Название столбца для оси X.
     :param y_column: Название столбца для оси Y.
     """
-    plt.figure(figsize=(12, 8))
-
-    # Уникальные категории по оси X
-    unique_categories = data[x_column].unique()
-    num_categories = len(unique_categories)
-
-    # Генерация массива цветов
-    color_map = pds.Series(data[y_column]).rank(method='dense').astype(int)
-    colors = plt.cm.winter(color_map / color_map.max())
-
-    # Построение линейного графика
-    for i, category in enumerate(unique_categories):
-        category_data = data[data[x_column] == category]
-        plt.plot(category_data[x_column], category_data[y_column], marker='o', color=colors[i], label=category)
-
-    # Настройка меток и заголовка
-    plt.xlabel(x_column, fontsize=14, fontweight='bold')
-    plt.ylabel(y_column, fontsize=14, fontweight='bold')
-    plt.title(f'Line Chart of {y_column} vs {x_column}', fontsize=18, fontweight='bold')
-
-    # Настройка меток на оси X
-    plt.xticks(rotation=45, fontsize=12)
-
-    # Добавление сетки
-    plt.grid(axis='both', linestyle='--', alpha=0.7)
-
-    # Добавление легенды
-    plt.legend(title=x_column, fontsize=12)
-
-    # Добавление значений над точками для лучшей читаемости
-    for i, value in enumerate(data[y_column]):
-        plt.text(data[x_column].iloc[i], value + 0.02 * max(data[y_column]), str(value), ha='center', fontsize=8, rotation=60)
-
-    plt.tight_layout()
+    plt.plot(data[x_column], data[y_column])
     plt.show()
 
 def create_histogram(data, column, bins=10):
@@ -104,11 +38,151 @@ def create_histogram(data, column, bins=10):
     :param column: Название столбца для построения гистограммы.
     :param bins: Количество корзин для гистограммы.
     """
-    plt.figure(figsize=(10, 6))
-    plt.hist(data[column], bins=bins, color='lightgreen', edgecolor='black')
-    plt.xlabel(column)
-    plt.ylabel('Frequency')
-    plt.title(f'Histogram of {column}')
-    plt.grid(axis='y', alpha=0.75)
-    plt.tight_layout()
+    plt.hist(data[column], bins=bins)
     plt.show()
+
+
+def create_contour_plot(data, x_column, y_column, z_column):
+    """
+    Создает контурный график.
+
+    :param data: DataFrame.
+    :param x_column: Название колонки для оси X.
+    :param y_column: Название колонки для оси Y.
+    :param z_column: Название колонки для оси Z.
+    """
+    plt.tricontourf(data[x_column], data[y_column], data[z_column], levels=15, cmap='viridis')
+    plt.colorbar()
+    plt.show()
+
+
+def create_seaborn_bar_chart(data, x_column, y_column):
+    """
+    Создает столбчатый график с использованием Seaborn.
+
+    :param data: DataFrame с данными.
+    :param x_column: Название колонки для оси X.
+    :param y_column: Название колонки для оси Y.
+    """
+    # Создаем столбчатый график
+    sns.barplot(data=data, x=x_column, y=y_column)
+
+    # # Настраиваем заголовок и подписи осей
+    # bar_chart.set_title(f'Bar Chart of {y_column} vs {x_column}')
+    # bar_chart.set_xlabel(x_column)
+    # bar_chart.set_ylabel(y_column)
+
+    # Показываем график
+    plt.show()
+
+
+def create_seaborn_line_chart(data, x_column, y_column):
+    """
+    Создает линейный график с использованием Seaborn.
+
+    :param data: DataFrame с данными.
+    :param x_column: Название колонки для оси X.
+    :param y_column: Название колонки для оси Y.
+    """
+    # Создаем линейный график
+    sns.lineplot(data=data, x=x_column, y=y_column)
+
+    # # Настраиваем заголовок и подписи осей
+    # line_chart.set_title(f'Line Chart of {y_column} vs {x_column}')
+    # line_chart.set_xlabel(x_column)
+    # line_chart.set_ylabel(y_column)
+
+    # Показываем график
+    plt.show()
+
+
+def create_seaborn_histogram(data, column):
+    """
+    Создает гистограмму с использованием Seaborn.
+
+    :param data: DataFrame с данными.
+    :param column: Название колонки для построения гистограммы.
+    """
+    # Создаем гистограмму с кривой плотности
+    sns.histplot(data[column], bins=10, kde=True)
+
+    # # Настраиваем заголовок и подписи осей
+    # histogram.set_title(f'Histogram of {column}')
+    # histogram.set_xlabel(column)
+    # histogram.set_ylabel('Frequency')
+
+    # Показываем график
+    plt.show()
+
+
+def create_seaborn_contour_plot(data, x_column, y_column, z_column):
+    """
+    Создает контурный график с использованием Seaborn.
+
+    :param data: DataFrame с данными.
+    :param x_column: Название колонки для оси X.
+    :param y_column: Название колонки для оси Y.
+    :param z_column: Название колонки для оси Y.
+    """
+    sns.kdeplot(data=data, x=x_column, y=y_column, cmap='viridis', fill=True)
+    plt.scatter(data[x_column], data[y_column], c=data[z_column], cmap='viridis', edgecolor='w', s=50)
+    plt.colorbar(label=z_column)
+    plt.show()
+
+
+def create_plotly_bar_chart(data, x_column, y_column):
+    """
+    Создает столбчатый график с использованием Plotly.
+
+    :param data: DataFrame с данными.
+    :param x_column: Название колонки для оси X.
+    :param y_column: Название колонки для оси Y.
+    """
+    fig = px.bar(data, x=x_column, y=y_column)
+    fig.show()
+
+
+def create_plotly_line_chart(data, x_column, y_column):
+    """
+    Создает линейный график с использованием Plotly.
+
+    :param data: DataFrame с данными.
+    :param x_column: Название колонки для оси X.
+    :param y_column: Название колонки для оси Y.
+    """
+    fig = px.line(data, x=x_column, y=y_column)
+    fig.show()
+
+
+def create_plotly_histogram(data, column):
+    """
+    Создает гистограмму с использованием Plotly.
+
+    :param data: DataFrame с данными.
+    :param column: Название колонки для построения гистограммы.
+    """
+    fig = px.histogram(data, x=column)
+    fig.show()
+
+
+def create_plotly_contour(data, x_column, y_column, z_column):
+    """
+    Создает контурный график с использованием Plotly.
+
+    :param data: DataFrame с данными.
+    :param x_column: Название столбца для оси X.
+    :param y_column: Название столбца для оси Y.
+    :param z_column: Название столбца для контуров (интенсивности).
+    """
+    x = data[x_column].values
+    y = data[y_column].values
+    z = data[z_column].values
+
+    grid_x, grid_y = np.meshgrid(np.linspace(np.min(x), np.max(x), 100),
+                                   np.linspace(np.min(y), np.max(y), 100))
+    grid_z = griddata((x, y), z, (grid_x, grid_y), method='linear')
+
+    fig = go.Figure(data=go.Contour(z=grid_z, x=grid_x[0], y=grid_y[:, 0], colorscale='Viridis'))
+    fig.show()
+
+
