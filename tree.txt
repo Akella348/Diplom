@@ -1,0 +1,17 @@
+│  main.py
+│  requirements.txt
+│  tree.txt
+│  Дипломная работа.docx
+│	
+├───data
+│  │  financial_shorted.xlsx
+│  │  financial_shorted - contour.xlsx
+│  │  financial2023shorted.csv
+│  │  
+├───source
+│  │  gui.py
+│  │  data_processing.py
+│  │  visualizations.py
+│  │  visualizations_max.py
+│  │  __init__.py
+├───venv
